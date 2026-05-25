@@ -13,13 +13,16 @@ export default defineConfig({
       reuseExistingServer: true,
     },
     {
-      command: "API_BASE_URL=http://127.0.0.1:8787 pnpm --filter @usen-pay/web dev",
+      command: "pnpm --filter @usen-pay/web dev",
+      env: {
+        API_BASE_URL: "http://127.0.0.1:8787",
+      },
       port: 3000,
       reuseExistingServer: true,
     },
   ],
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
-    { name: "mobile", use: { ...devices["iPhone 15"] } },
+    { name: "mobile", use: { ...devices["Pixel 7"], browserName: "chromium" } },
   ],
 });
