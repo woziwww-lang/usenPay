@@ -1,0 +1,35 @@
+{
+  "name": "usen-pay-workspace",
+  "private": true,
+  "version": "0.2.0",
+  "packageManager": "pnpm@11.1.3",
+  "scripts": {
+    "dev": "turbo dev --parallel",
+    "dev:web": "pnpm --filter @usen-pay/web dev",
+    "dev:web:mock": "pnpm --filter @usen-pay/web dev:mock",
+    "dev:bff": "pnpm --filter @usen-pay/bff dev",
+    "dev:api": "cd apps/api && ./gradlew bootRun",
+    "dev:api:db": "cd apps/api && SPRING_PROFILES_ACTIVE=local-db ./gradlew bootRun",
+    "dev:mock": "pnpm --filter @usen-pay/mock-server dev",
+    "dev:mock:all": "pnpm --parallel --filter @usen-pay/mock-server --filter @usen-pay/web dev:mock",
+    "build": "turbo build",
+    "build:api": "cd apps/api && ./gradlew build",
+    "build:all": "pnpm build && pnpm build:api",
+    "check": "turbo check",
+    "check:api": "cd apps/api && ./gradlew test",
+    "test": "turbo test",
+    "test:e2e": "pnpm --filter @usen-pay/web test:e2e",
+    "format": "biome format --write .",
+    "lint": "biome check ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.6",
+    "@playwright/test": "^1.56.1",
+    "turbo": "^2.6.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "codex": "^0.2.3"
+  }
+}

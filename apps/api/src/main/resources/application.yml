@@ -1,0 +1,19 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: usen-pay-api
+  profiles:
+    default: local-memory
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+usenpay:
+  integrations:
+    redis-enabled: ${USENPAY_REDIS_ENABLED:false}
+    rabbitmq-enabled: ${USENPAY_RABBITMQ_ENABLED:false}

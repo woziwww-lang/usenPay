@@ -1,0 +1,8 @@
+{
+  "extends": "@usen-pay/config/tsconfig/base",
+  "compilerOptions": {
+    "outDir": "dist",
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts"]
+}

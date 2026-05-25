@@ -1,0 +1,9 @@
+{
+  "name": "@usen-pay/config",
+  "private": true,
+  "version": "0.2.0",
+  "exports": {
+    "./tsconfig/base": "./tsconfig/base.json",
+    "./tsconfig/next": "./tsconfig/next.json"
+  }
+}
