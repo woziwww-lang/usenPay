@@ -3,22 +3,25 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./e2e",
   use: {
-    baseURL: "http://127.0.0.1:3000",
+    baseURL: "http://127.0.0.1:3100",
     trace: "on-first-retry",
   },
   webServer: [
     {
       command: "pnpm --filter @usen-pay/bff start",
-      port: 8787,
-      reuseExistingServer: true,
+      env: {
+        PORT: "8788",
+      },
+      port: 8788,
+      reuseExistingServer: false,
     },
     {
-      command: "pnpm --filter @usen-pay/web dev",
+      command: "pnpm --filter @usen-pay/web exec next dev -p 3100",
       env: {
-        API_BASE_URL: "http://127.0.0.1:8787",
+        API_BASE_URL: "http://127.0.0.1:8788",
       },
-      port: 3000,
-      reuseExistingServer: true,
+      port: 3100,
+      reuseExistingServer: false,
     },
   ],
   projects: [

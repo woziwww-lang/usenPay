@@ -4,7 +4,7 @@ import com.usenpay.common.error.ApiException
 import com.usenpay.dashboard.domain.Checkout
 import com.usenpay.infrastructure.event.CheckoutEvent
 import com.usenpay.infrastructure.event.DomainEventPublisher
-import com.usenpay.infrastructure.store.InMemoryOperationsStore
+import com.usenpay.infrastructure.store.OperationsStore
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 
@@ -24,7 +24,7 @@ data class ReceiptResult(
 
 @Service
 class CheckoutService(
-    private val store: InMemoryOperationsStore,
+    private val store: OperationsStore,
     private val eventPublisher: DomainEventPublisher,
 ) {
     fun settle(checkoutId: String): Checkout {
@@ -51,8 +51,9 @@ class CheckoutService(
         checkoutId: String,
         amount: Int,
     ): Checkout {
-        val checkout = runCatching { store.discount(checkoutId, amount.coerceAtLeast(0)) }.getOrElse { throw notFound() }
-        eventPublisher.publish(CheckoutEvent("checkout.discount_applied", checkoutId, mapOf("amount" to amount)))
+        val normalizedAmount = amount.coerceAtLeast(0)
+        val checkout = runCatching { store.discount(checkoutId, normalizedAmount) }.getOrElse { throw notFound() }
+        eventPublisher.publish(CheckoutEvent("checkout.discount_applied", checkoutId, mapOf("amount" to normalizedAmount)))
         return checkout
     }
 

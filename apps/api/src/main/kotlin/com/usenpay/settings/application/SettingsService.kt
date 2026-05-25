@@ -1,12 +1,12 @@
 package com.usenpay.settings.application
 
-import com.usenpay.infrastructure.store.InMemoryOperationsStore
+import com.usenpay.infrastructure.store.OperationsStore
 import com.usenpay.settings.domain.StoreSettings
 import org.springframework.stereotype.Service
 
 @Service
 class SettingsService(
-    private val store: InMemoryOperationsStore,
+    private val store: OperationsStore,
 ) {
     fun getSettings(): StoreSettings = store.settings()
 

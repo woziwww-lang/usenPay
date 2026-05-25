@@ -17,10 +17,12 @@ import java.time.format.DateTimeFormatter
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 
 @Component
-class InMemoryOperationsStore {
+@Profile("local-memory")
+class InMemoryOperationsStore : OperationsStore {
     private val lock = ReentrantReadWriteLock()
 
     private val merchant =
@@ -104,7 +106,7 @@ class InMemoryOperationsStore {
                 ),
         )
 
-    fun dashboard(): DashboardView =
+    override fun dashboard(): DashboardView =
         lock.read {
             DashboardView(
                 merchant = merchant,
@@ -118,17 +120,17 @@ class InMemoryOperationsStore {
             )
         }
 
-    fun settings(): StoreSettings = lock.read { settings }
+    override fun settings(): StoreSettings = lock.read { settings }
 
-    fun updateSettings(nextSettings: StoreSettings): StoreSettings =
+    override fun updateSettings(nextSettings: StoreSettings): StoreSettings =
         lock.write {
             settings = nextSettings
             settings
         }
 
-    fun findCheckout(checkoutId: String): Checkout? = lock.read { checkouts.firstOrNull { it.id == checkoutId }?.copy() }
+    override fun findCheckout(checkoutId: String): Checkout? = lock.read { checkouts.firstOrNull { it.id == checkoutId }?.copy() }
 
-    fun settle(checkoutId: String): Checkout =
+    override fun settle(checkoutId: String): Checkout =
         lock.write {
             val checkout = checkouts.firstOrNull { it.id == checkoutId } ?: error("Checkout not found")
             checkout.status = "paid"
@@ -156,7 +158,7 @@ class InMemoryOperationsStore {
             checkout.copy()
         }
 
-    fun discount(
+    override fun discount(
         checkoutId: String,
         amount: Int,
     ): Checkout =
