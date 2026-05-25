@@ -1,7 +1,10 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { authRoute } from "./routes/auth";
+import { checkoutRoute } from "./routes/checkout";
 import { dashboardRoute } from "./routes/dashboard";
+import { settingsRoute } from "./routes/settings";
 
 const app = new Hono();
 
@@ -9,12 +12,15 @@ app.use(
   "*",
   cors({
     origin: ["http://localhost:3000", "http://127.0.0.1:3000"],
-    allowMethods: ["GET", "OPTIONS"]
-  })
+    allowMethods: ["GET", "POST", "PATCH", "OPTIONS"],
+  }),
 );
 
 app.get("/health", (context) => context.json({ ok: true, service: "usen-pay-bff" }));
+app.route("/auth", authRoute);
+app.route("/checkout", checkoutRoute);
 app.route("/dashboard", dashboardRoute);
+app.route("/settings", settingsRoute);
 
 const port = Number(process.env.PORT ?? 8787);
 

@@ -4,22 +4,22 @@ export default defineConfig({
   testDir: "./e2e",
   use: {
     baseURL: "http://127.0.0.1:3000",
-    trace: "on-first-retry"
+    trace: "on-first-retry",
   },
   webServer: [
     {
       command: "pnpm --filter @usen-pay/bff start",
       port: 8787,
-      reuseExistingServer: true
+      reuseExistingServer: true,
     },
     {
-      command: "pnpm --filter @usen-pay/web dev",
+      command: "API_BASE_URL=http://127.0.0.1:8787 pnpm --filter @usen-pay/web dev",
       port: 3000,
-      reuseExistingServer: true
-    }
+      reuseExistingServer: true,
+    },
   ],
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
-    { name: "mobile", use: { ...devices["iPhone 15"] } }
-  ]
+    { name: "mobile", use: { ...devices["iPhone 15"] } },
+  ],
 });

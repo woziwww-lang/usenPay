@@ -24,7 +24,9 @@ export function VisitorChart({ points }: Props) {
                 style={{ height: `${Math.max(14, (point.visitors / max) * 100)}%` }}
                 title={`${point.visitors} visitors`}
               />
-              <span className="absolute left-1 top-1 text-xs font-semibold text-slate-700">{point.checkoutWait}m</span>
+              <span className="absolute left-1 top-1 text-xs font-semibold text-slate-700">
+                {point.checkoutWait}m
+              </span>
             </div>
             <span className="text-center text-xs text-slate-500">{point.time}</span>
           </div>

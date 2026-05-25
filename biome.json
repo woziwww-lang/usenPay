@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.2.6/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.15/schema.json",
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
@@ -15,7 +15,23 @@
       }
     }
   },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
   "files": {
-    "includes": ["**/*.{ts,tsx,js,mjs,json,css,md}", "!node_modules", "!dist", "!.next"]
+    "includes": [
+      "**/*.{ts,tsx,js,mjs,json,css,md}",
+      "!**/*.bak",
+      "!**/node_modules",
+      "!**/dist",
+      "!**/.next",
+      "!**/.turbo",
+      "!**/.vite",
+      "!**/test-results",
+      "!**/playwright-report",
+      "!**/coverage"
+    ]
   }
 }
