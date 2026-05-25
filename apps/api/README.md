@@ -2,7 +2,7 @@
 
 Kotlin Spring Boot backend for the USEN PAY restaurant operations console.
 
-This service is scaffolded as the future production backend that will replace `apps/mock-server`. It defaults to an in-memory infrastructure adapter so frontend integration can switch from mock API to Spring Boot before PostgreSQL schemas are finalized. Use the `local-db` or `prod` Spring profile when validating PostgreSQL/Flyway wiring.
+The service supports both fast local development and PostgreSQL-backed validation. The default profile is `local-memory`; `local-db` and `prod` use the JDBC/PostgreSQL operations store and Flyway migrations.
 
 ## Stack
 
@@ -11,8 +11,11 @@ This service is scaffolded as the future production backend that will replace `a
 - Spring Web
 - Spring Validation
 - Spring Actuator
-- Spring Data Redis dependency for cache/session/idempotency integration
-- Spring AMQP dependency for RabbitMQ event integration
+- Spring JDBC
+- Flyway
+- PostgreSQL
+- Spring Data Redis dependency for future cache/session/idempotency integration
+- Spring AMQP dependency for future RabbitMQ event integration
 - Gradle Kotlin DSL
 - Java 21 toolchain
 
@@ -38,17 +41,17 @@ src/main/kotlin/com/usenpay
     application/
     domain/
   infrastructure/
-    store/           current in-memory adapter, later DB repositories
-    event/           current logging publisher, later RabbitMQ/outbox
+    store/           OperationsStore plus memory and JDBC adapters
+    event/           logging publisher, future RabbitMQ/outbox integration
   common/
     error/           global error model and exception handler
     web/             shared web response helpers
   config/            cross-cutting Spring configuration
+src/main/resources
+  db/migration/      Flyway schema and seed migrations
 ```
 
 ## API Contract
-
-The initial contract matches the mock server and the Next.js API proxy:
 
 ```txt
 GET    /dashboard
@@ -59,6 +62,7 @@ POST   /checkout/{checkoutId}/settle
 POST   /checkout/{checkoutId}/split
 POST   /checkout/{checkoutId}/discount
 POST   /checkout/{checkoutId}/receipt
+GET    /actuator/health
 ```
 
 Frontend integration:
@@ -67,10 +71,10 @@ Frontend integration:
 API_BASE_URL=http://localhost:8080 pnpm dev:web
 ```
 
-Mock integration remains:
+Default app integration through the BFF:
 
 ```bash
-pnpm dev:mock:all
+pnpm dev:app
 ```
 
 ## Prerequisites
@@ -78,11 +82,17 @@ pnpm dev:mock:all
 - JDK 21
 - Docker, only when running PostgreSQL/Redis/RabbitMQ locally
 
-You do not need to install Gradle globally. Use the committed Gradle Wrapper.
+You do not need to install Gradle globally. Use the committed Gradle Wrapper or the root `pnpm` scripts, which set `JAVA_HOME` to `/opt/homebrew/opt/openjdk@21` when `JAVA_HOME` is not already set.
 
 ## Run
 
 Default local memory mode:
+
+```bash
+pnpm dev:api
+```
+
+Equivalent direct command:
 
 ```bash
 cd apps/api
@@ -106,10 +116,26 @@ Local PostgreSQL/Flyway mode:
 ```bash
 cd apps/api
 docker compose up -d postgres
-SPRING_PROFILES_ACTIVE=local-db ./gradlew bootRun
+cd ../..
+pnpm dev:api:db
 ```
 
-Production mode requires explicit environment variables:
+`pnpm dev:api:db` runs with `SPRING_PROFILES_ACTIVE=local-db`. It applies Flyway migrations and uses the JDBC `OperationsStore` adapter. Redis and RabbitMQ health indicators are disabled by default for this profile.
+
+Stop PostgreSQL when finished:
+
+```bash
+cd apps/api
+docker compose stop postgres
+```
+
+## Profiles
+
+- `local-memory`: default profile, excludes datasource/JPA/Flyway auto-configuration, uses `InMemoryOperationsStore`.
+- `local-db`: local PostgreSQL profile, runs Flyway migrations and uses `JdbcOperationsStore`.
+- `prod`: production PostgreSQL profile, uses explicit environment variables.
+
+Production environment variables:
 
 ```bash
 SPRING_PROFILES_ACTIVE=prod
@@ -126,7 +152,13 @@ RABBITMQ_PASSWORD=...
 
 ```bash
 cd apps/api
-docker compose up -d
+docker compose up -d postgres
+```
+
+Optional services:
+
+```bash
+docker compose up -d redis rabbitmq
 ```
 
 Ports:
@@ -136,20 +168,40 @@ Ports:
 - RabbitMQ AMQP: `localhost:5672`
 - RabbitMQ management UI: `http://localhost:15672`
 
+## Checks and Build
+
+From the repo root:
+
+```bash
+pnpm check:api
+pnpm build:api
+```
+
+From `apps/api` directly:
+
+```bash
+./gradlew test
+./gradlew build
+```
+
 ## Architecture Rules
 
 - Controllers only translate HTTP DTOs to use-case calls.
-- Application services own transaction boundaries and orchestration.
+- Application services own orchestration and transaction-facing use cases.
 - Domain models keep business vocabulary independent from persistence.
 - Infrastructure adapters own DB, Redis, RabbitMQ, and third-party details.
-- Checkout settlement must be strongly consistent and DB-transactional when persistence is added.
+- `OperationsStore` is the current persistence boundary for dashboard, checkout, auth seed users, and settings.
+- Checkout settlement must stay strongly consistent and DB-transactional in JDBC/prod profiles.
 - RabbitMQ is for async side effects after checkout success, not for core transaction consistency.
 - Redis is for cache, idempotency keys, locks, and session-related hot data, not the source of truth.
-- PostgreSQL will be the source of truth.
+- PostgreSQL is the source of truth for `local-db` and `prod`.
 
-## Future Persistence Plan
+## Persistence Notes
 
-1. Replace `InMemoryOperationsStore` with repository interfaces and PostgreSQL adapters.
-2. Add JPA entities that map to the Flyway schema under `src/main/resources/db/migration`.
-3. Publish RabbitMQ messages through an outbox worker after DB commit.
-4. Add Redis cache for dashboard aggregation with explicit invalidation after checkout/settings mutations.
+- Flyway migrations live under `src/main/resources/db/migration`.
+- `V1__init_core_schema.sql` creates the core schema.
+- `V2__seed_pos_demo_data.sql` seeds the local POS demo data and fills dashboard metrics used by the UI.
+- `InMemoryOperationsStore` is active only in `local-memory`.
+- `JdbcOperationsStore` is active in `local-db` and `prod`.
+
+Next persistence work should add focused integration tests around Flyway, checkout settlement idempotency, and settings updates against PostgreSQL.
