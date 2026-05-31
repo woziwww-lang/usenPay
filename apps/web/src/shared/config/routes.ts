@@ -17,6 +17,14 @@ export const mypageSections = [
 
 export type MyPageSection = (typeof mypageSections)[number];
 
-export function isMyPageSection(value: string): value is MyPageSection {
+export function isMyPageSection(value: unknown): value is MyPageSection {
+  if (typeof value !== "string") {
+    return false;
+  }
+
   return mypageSections.includes(value as MyPageSection);
+}
+
+export function getDefaultMyPageSection(): MyPageSection {
+  return "security";
 }

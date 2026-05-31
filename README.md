@@ -8,9 +8,9 @@ The app now has three runnable backend modes: the Spring Boot API in local-memor
 
 - Package manager and workspace: `pnpm`, `pnpm-workspace.yaml`
 - Monorepo orchestration: Turborepo
-- Web app: Next.js App Router, React 19, TypeScript
+- Web app: React 19 SPA, Vite, React Router, TypeScript
 - Styling: Tailwind CSS v4, shared theme tokens in `apps/web/src/app/globals.css`
-- API proxy layer: Next Route Handlers under `apps/web/src/app/api`
+- API boundary: browser calls `/api/*`, Vite/local edge proxy routes to BFF/mock/Spring
 - BFF: Hono on Node, `apps/bff`
 - Backend API: Kotlin Spring Boot, Java 21, Flyway, JDBC/PostgreSQL adapter
 - Mock API: Hono on Node, `apps/mock-server`
@@ -26,7 +26,7 @@ The app now has three runnable backend modes: the Spring Boot API in local-memor
 
 ```txt
 apps/
-  web/             Next.js frontend and API proxy routes
+  web/             React + Vite frontend SPA
   api/             Kotlin Spring Boot backend service
   mock-server/     Stateful mock API used by mock development mode
   bff/             Hono BFF for local app aggregation and fallback data
@@ -55,7 +55,7 @@ This starts:
 - BFF: `http://localhost:8787`
 - Web: `http://localhost:3000`
 
-The web app talks to the BFF through `API_BASE_URL=http://localhost:8787`. The BFF can serve local fallback data by itself, or proxy to Spring Boot when `CORE_API_BASE_URL` is configured in the BFF environment.
+The web app calls relative `/api/*` routes. In local development, Vite proxies those requests to the BFF. The BFF can serve local fallback data by itself, or proxy to Spring Boot when `CORE_API_BASE_URL` is configured in the BFF environment.
 
 ## Runtime Modes
 
@@ -84,7 +84,7 @@ curl http://localhost:8080/actuator/health
 To point the web app directly at Spring Boot:
 
 ```bash
-API_BASE_URL=http://localhost:8080 pnpm dev:web
+VITE_API_MODE=spring pnpm dev:web
 ```
 
 ### Spring Boot API: PostgreSQL/Flyway
@@ -126,11 +126,11 @@ The dashboard header shows the active data source so accidental mock/API confusi
 
 ### Production Build
 
-Production must provide `API_BASE_URL` for the web app and explicit environment variables for the API.
+Production must route `/api/*` to the BFF/API boundary and provide explicit environment variables for the API.
 
 ```bash
-API_BASE_URL=https://api.example.com pnpm --filter @usen-pay/web build
-API_BASE_URL=https://api.example.com pnpm --filter @usen-pay/web start
+pnpm --filter @usen-pay/web build
+pnpm --filter @usen-pay/web preview
 ```
 
 For the Spring Boot API, use `SPRING_PROFILES_ACTIVE=prod` with database credentials. See `apps/api/README.md`.
@@ -166,7 +166,7 @@ Keep payloads aligned with `packages/domain/src/contracts.ts`. Update Zod contra
 ```txt
 app/
   _providers/      App-level providers, error boundary, query client
-  api/             Next Route Handlers that proxy backend APIs
+  app/             SPA shell, React Router, providers, error boundary
   dashboard/       Dashboard route alias
   mypage/          Store administration routes
 features/
@@ -177,7 +177,7 @@ features/
   admin-mypage/
     model/         Settings query and save mutation
 shared/
-  api/             Server-side backend fetch helpers
+  api/             Browser API client, proxy-mode helpers, error normalization
   auth/            Manager session store, login mutation, permission gate
   config/          Routes and server environment helpers
   model/           Cross-feature stores such as toast messages
@@ -193,9 +193,10 @@ Initial dashboard render:
 
 ```txt
 Browser request
-  -> Next Server Component route `/` or `/dashboard`
-  -> getDashboardView()
-  -> API_BASE_URL /dashboard
+  -> React Router route `/` or `/dashboard`
+  -> useDashboardQuery()
+  -> /api/dashboard
+  -> Vite/local edge proxy
   -> Zod validation via dashboardViewSchema
   -> DashboardClient initialDashboard prop
 ```
@@ -206,21 +207,21 @@ After hydration, dashboard server state is owned by TanStack Query:
 DashboardClient
   -> useDashboardQuery(initialDashboard)
   -> GET /api/dashboard
-  -> Next Route Handler
-  -> API_BASE_URL /dashboard
+  -> Vite/local edge proxy
+  -> BFF/mock/Spring /dashboard
   -> Zod validation
   -> query cache update
 ```
 
-Checkout actions go through Next Route Handlers and invalidate the dashboard query on success:
+Checkout actions go through the shared API client and invalidate the dashboard query on success:
 
 ```txt
 Checkout button
   -> permission check in auth store
   -> useCheckoutActionMutation()
   -> POST /api/checkout/:checkoutId/:action
-  -> Next Route Handler
-  -> API_BASE_URL /checkout/:checkoutId/:action
+  -> Vite/local edge proxy
+  -> BFF/mock/Spring /checkout/:checkoutId/:action
   -> mutation success toast
   -> invalidate dashboard query
 ```
@@ -239,8 +240,8 @@ MyPage route
   -> PermissionGate checks `settings:write`
   -> useStoreSettingsQuery()
   -> GET /api/settings
-  -> Next Route Handler
-  -> API_BASE_URL /settings
+  -> Vite/local edge proxy
+  -> BFF/mock/Spring /settings
   -> settings form state
   -> Save settings
   -> PATCH /api/settings

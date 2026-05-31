@@ -29,9 +29,9 @@ export function AdminLoginCard() {
 
   if (session) {
     return (
-      <section className="rounded-lg border border-line bg-white p-4 shadow-panel">
+      <section className="rounded-xl border border-line bg-white p-4 shadow-panel">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-emerald-50 text-mint">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-mint">
             <ShieldCheck size={20} aria-hidden="true" />
           </div>
           <div className="min-w-0">
@@ -41,7 +41,7 @@ export function AdminLoginCard() {
           </div>
         </div>
         <button
-          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md border border-line bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition-colors duration-200 hover:border-cyan/50 hover:bg-cyan/5 focus:ring-4 focus:ring-payblue/20"
           onClick={() => {
             logout();
             pushToast({ title: "Console locked", tone: "info" });
@@ -56,9 +56,9 @@ export function AdminLoginCard() {
   }
 
   return (
-    <section className="rounded-lg border border-line bg-white p-4 shadow-panel">
+    <section className="rounded-xl border border-line bg-white p-4 shadow-panel">
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-md bg-blue-50 text-payblue">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-payblue">
           <LockKeyhole size={20} aria-hidden="true" />
         </div>
         <div>
@@ -70,7 +70,7 @@ export function AdminLoginCard() {
         <label className="block">
           <span className="text-xs font-semibold uppercase text-slate-500">Manager ID</span>
           <input
-            className="mt-1 w-full rounded-md border border-line bg-white px-3 py-2 text-sm outline-none ring-payblue/20 focus:ring-4"
+            className="mt-1 w-full rounded-lg border border-line bg-white px-3 py-2 text-sm outline-none transition-colors duration-200 focus:border-payblue focus:ring-4 focus:ring-payblue/20"
             defaultValue="manager.meguro"
             name="manager"
           />
@@ -79,14 +79,14 @@ export function AdminLoginCard() {
         <label className="block">
           <span className="text-xs font-semibold uppercase text-slate-500">Password</span>
           <input
-            className="mt-1 w-full rounded-md border border-line bg-white px-3 py-2 text-sm outline-none ring-payblue/20 focus:ring-4"
+            className="mt-1 w-full rounded-lg border border-line bg-white px-3 py-2 text-sm outline-none transition-colors duration-200 focus:border-payblue focus:ring-4 focus:ring-payblue/20"
             defaultValue="demo-pass"
             name="password"
             type="password"
           />
         </label>
         <button
-          className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-payblue px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-payblue px-3 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:ring-4 focus:ring-payblue/20 disabled:cursor-not-allowed disabled:bg-slate-300"
           disabled={login.isPending}
           type="submit"
         >

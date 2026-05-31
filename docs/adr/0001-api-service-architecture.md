@@ -22,7 +22,7 @@ The first implementation keeps mutable state in memory and matches the mock API 
 
 ## Consequences
 
-- Frontend can switch between mock API and Spring Boot via `API_BASE_URL`.
+- Frontend can switch between BFF, mock API, and Spring Boot via the Vite `/api` proxy mode.
 - API contracts stay close to frontend and shared documentation.
 - Mock server remains useful for isolated frontend development.
 - Backend can evolve toward database-backed microservice patterns without moving repositories.
@@ -32,7 +32,7 @@ The first implementation keeps mutable state in memory and matches the mock API 
 Frontend:
 
 ```bash
-API_BASE_URL=http://localhost:8080 pnpm dev:web
+VITE_API_MODE=spring pnpm dev:web
 ```
 
 Mock:
@@ -42,4 +42,3 @@ pnpm dev:mock:all
 ```
 
 No production code should silently fall back to mock endpoints.
-

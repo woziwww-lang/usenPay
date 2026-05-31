@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { runCheckoutAction as postCheckoutAction } from "@/shared/api/api-client";
 import { dashboardQueryKey } from "./dashboard-query";
 
 type CheckoutAction = "settle" | "split" | "discount" | "receipt";
@@ -22,21 +23,7 @@ async function runCheckoutAction({
   body,
   checkoutId,
 }: CheckoutActionInput): Promise<CheckoutActionResult> {
-  const response = await fetch(`/api/checkout/${checkoutId}/${action}`, {
-    method: "POST",
-    headers: {
-      accept: "application/json",
-      "content-type": "application/json",
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-
-  const payload = await response.json();
-  if (!response.ok) {
-    throw new Error(payload.error ?? `Checkout ${action} failed`);
-  }
-
-  return payload;
+  return postCheckoutAction(checkoutId, action, body);
 }
 
 export function useCheckoutActionMutation() {

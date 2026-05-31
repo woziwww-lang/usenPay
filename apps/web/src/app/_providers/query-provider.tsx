@@ -5,7 +5,6 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 import { useToastStore } from "@/shared/model/toast-store";
 import { ToastViewport } from "@/shared/ui/toast-viewport";
-import { AppErrorBoundary } from "./error-boundary";
 
 type Props = {
   children: ReactNode;
@@ -36,11 +35,9 @@ export function QueryProvider({ children }: Props) {
   );
 
   return (
-    <AppErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        {children}
-        <ToastViewport />
-      </QueryClientProvider>
-    </AppErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      {children}
+      <ToastViewport />
+    </QueryClientProvider>
   );
 }

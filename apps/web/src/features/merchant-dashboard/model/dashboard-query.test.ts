@@ -11,16 +11,19 @@ describe("dashboard query API", () => {
     expect(dashboardQueryKey).toEqual(["merchant-dashboard"]);
   });
 
-  it("fetches and validates dashboard data from the Next API proxy", async () => {
+  it("fetches and validates dashboard data from the SPA API boundary", async () => {
     const fetchMock = vi.fn(async () => Response.json(dashboardViewFixture));
     vi.stubGlobal("fetch", fetchMock);
 
     await expect(fetchDashboardView()).resolves.toEqual(dashboardViewFixture);
-    expect(fetchMock).toHaveBeenCalledWith("/api/dashboard", {
-      headers: {
-        accept: "application/json",
-      },
-    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/dashboard",
+      expect.objectContaining({
+        headers: {
+          accept: "application/json",
+        },
+      }),
+    );
   });
 
   it("throws when the dashboard API returns an error", async () => {
@@ -29,6 +32,6 @@ describe("dashboard query API", () => {
       vi.fn(async () => new Response(null, { status: 500 })),
     );
 
-    await expect(fetchDashboardView()).rejects.toThrow("Dashboard request failed: 500");
+    await expect(fetchDashboardView()).rejects.toThrow("Request failed: 500");
   });
 });

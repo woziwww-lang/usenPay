@@ -2,7 +2,7 @@
 
 本文档用于持久化 USEN PAY 后续从开发到云端部署、容器化、再到 Kubernetes 的落地计划。计划基于当前仓库状态制定：
 
-- `apps/web`: Next.js App Router 前端
+- `apps/web`: React + Vite SPA 前端
 - `apps/bff`: Hono BFF
 - `apps/api`: Kotlin Spring Boot API
 - `apps/mock-server`: 本地/mock 开发服务
@@ -19,7 +19,7 @@
 对当前项目最合理、最稳妥的路径是：
 
 1. 用 GitHub Actions 建立 CI 和发布自动化。
-2. 用 Vercel 部署 Next.js Web。
+2. 用 Vercel 或 Cloudflare Pages 部署 React + Vite Web 静态产物。
 3. 用 AWS ECS Fargate 部署 BFF 和 Spring API 容器。
 4. 用 AWS RDS PostgreSQL 作为主数据库。
 5. 用 AWS ECR 管理容器镜像。
@@ -469,7 +469,7 @@ BFF service：
 1. 点击 `Add New Project`。
 2. Import GitHub repo。
 3. 选择 `usenPay` repository。
-4. Framework Preset 选择 Next.js。
+4. Framework Preset 选择 Vite，或选择 Other 后手动配置构建命令。
 5. Root Directory 选择 `apps/web`，如果构建依赖 workspace 包，需要确认 Vercel 使用 monorepo install。
 6. Build command 建议使用 repo 兼容命令，例如：
 
@@ -483,21 +483,17 @@ pnpm --filter @usen-pay/web build
 pnpm install --frozen-lockfile
 ```
 
-8. Output 按 Vercel Next.js 默认。
-9. 配置 Environment Variables：
-
-```txt
-API_BASE_URL=https://<staging-bff-domain>
-```
-
-10. 部署 preview。
+8. Output directory 设置为 `dist`。
+9. 配置 rewrites，把 `/api/*` 转发到 staging BFF。Vercel 可用 `vercel.json`，Cloudflare Pages 可用 Pages Functions 或反向代理规则。
+10. 如后续需要在浏览器里显示环境标签，再配置安全的 `VITE_*` 变量；不要把 secrets 放进 Vite env。
+11. 部署 preview。
 
 验收：
 
 - Vercel build 成功。
 - 页面可以打开。
 - dashboard 数据来自 staging BFF/API。
-- `API_BASE_URL` 没配错环境。
+- `/api` 代理或生产边缘路由没有配错环境。
 
 ### Step 11: Cloudflare DNS / WAF
 
@@ -649,7 +645,7 @@ main branch CI green
 - 增加容器健康检查：
   - API: `/actuator/health`
   - BFF: `/health`
-  - Web: Next.js route 或平台健康检查
+  - Web: 静态站点健康检查或平台默认健康检查
 
 推荐镜像策略：
 
@@ -704,15 +700,15 @@ main branch CI green
 
 ## Phase 5: Vercel Web 部署
 
-目标：用最少运维成本部署 Next.js Web。
+目标：用最少运维成本部署 React + Vite Web。
 
 交付物：
 
 - 创建 `apps/web` 对应的 Vercel project。
 - 正确配置 monorepo root/build command。
 - 配置环境变量：
-  - staging: `API_BASE_URL=https://staging-bff...`
-  - production: `API_BASE_URL=https://api...` 或 `https://bff...`
+  - staging: `/api/*` 路由到 staging BFF
+  - production: `/api/*` 路由到 production BFF
 - 使用 Vercel GitHub integration 或 GitHub Actions 触发 Vercel deploy。
 
 验收标准：
@@ -720,11 +716,11 @@ main branch CI green
 - PR 能创建 preview deployment。
 - main 分支按分支策略部署 staging 或 production。
 - preview/staging/prod 都指向正确 API endpoint。
-- `API_BASE_URL` 缺失时能明确失败。
+- `/api/*` 没有路由到后端时能在 smoke test 中明确失败。
 
 实现要点：
 
-- Vercel 是当前 Next.js App Router 最合适的第一部署目标。
+- Vercel 或 Cloudflare Pages 都适合当前 Vite 静态站点；若希望域名、安全策略统一，Cloudflare Pages 也可以成为第一部署目标。
 - 如果后续要求全部部署在 AWS，再补 Web Docker image 并迁移到 ECS 或 EKS。
 
 ## Phase 6: Cloudflare 边缘与域名层

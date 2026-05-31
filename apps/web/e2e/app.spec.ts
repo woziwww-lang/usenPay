@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("shows the SSR dashboard and client-side order filter", async ({ page }) => {
+test("shows the SPA dashboard and client-side order filter", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "MEGURO KITCHEN LAB" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Table availability" })).toBeVisible();

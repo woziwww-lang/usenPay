@@ -1,23 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
-import { type DashboardView, dashboardViewSchema } from "@usen-pay/domain";
+import type { DashboardView } from "@usen-pay/domain";
+import { getDashboard } from "@/shared/api/api-client";
 
 export const dashboardQueryKey = ["merchant-dashboard"] as const;
 
 export async function fetchDashboardView(): Promise<DashboardView> {
-  const response = await fetch("/api/dashboard", {
-    headers: {
-      accept: "application/json",
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Dashboard request failed: ${response.status}`);
-  }
-
-  return dashboardViewSchema.parse(await response.json());
+  return getDashboard();
 }
 
-export function useDashboardQuery(initialDashboard: DashboardView) {
+export function useDashboardQuery(initialDashboard?: DashboardView) {
   return useQuery({
     queryKey: dashboardQueryKey,
     queryFn: fetchDashboardView,

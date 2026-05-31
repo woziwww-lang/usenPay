@@ -16,9 +16,9 @@ export default defineConfig({
       reuseExistingServer: false,
     },
     {
-      command: "pnpm --filter @usen-pay/web exec next dev -p 3100",
+      command: "pnpm --filter @usen-pay/web exec vite --host 0.0.0.0 --port 3100",
       env: {
-        API_BASE_URL: "http://127.0.0.1:8788",
+        VITE_API_PROXY_TARGET: "http://127.0.0.1:8788",
       },
       port: 3100,
       reuseExistingServer: false,

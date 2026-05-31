@@ -16,12 +16,60 @@ const methodIcon: Record<PaymentMethod, typeof CreditCard> = {
 
 export function PaymentTable({ transactions }: Props) {
   return (
-    <section className="rounded-lg border border-line bg-white shadow-panel">
+    <section className="overflow-hidden rounded-xl border border-line bg-white shadow-panel">
       <div className="border-b border-line p-4">
-        <h2 className="text-base font-semibold text-ink">Payment monitor</h2>
+        <h2 className="text-base font-semibold tracking-tight text-ink">Payment monitor</h2>
         <p className="text-sm text-slate-600">Brand, status, capture, and risk signal</p>
       </div>
-      <div className="overflow-x-auto">
+      <div className="grid gap-3 p-4 md:hidden">
+        {transactions.map((transaction) => {
+          const Icon = methodIcon[transaction.method];
+          return (
+            <article className="rounded-xl border border-line bg-slate-50 p-3" key={transaction.id}>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-semibold text-ink">{transaction.id}</p>
+                  <p className="text-xs text-slate-500">
+                    {transaction.orderId} at {transaction.capturedAt}
+                  </p>
+                </div>
+                <StatusBadge value={transaction.status} />
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                <span className="inline-flex items-center gap-2 text-slate-700">
+                  <Icon size={17} aria-hidden="true" />
+                  {transaction.brand}
+                </span>
+                <span className="text-right font-semibold text-ink">
+                  {currency.format(transaction.amount)}
+                </span>
+              </div>
+              <div className="mt-3">
+                <div className="mb-1 flex justify-between text-xs font-semibold uppercase text-slate-500">
+                  <span>Risk</span>
+                  <span>{transaction.riskScore}</span>
+                </div>
+                <div
+                  aria-label={`Risk score ${transaction.riskScore}`}
+                  aria-valuemax={100}
+                  aria-valuemin={0}
+                  aria-valuenow={transaction.riskScore}
+                  className="h-2 rounded bg-slate-200"
+                  role="progressbar"
+                >
+                  <div
+                    className={`h-2 rounded transition-[width] duration-300 ${
+                      transaction.riskScore > 50 ? "bg-coral" : "bg-mint"
+                    }`}
+                    style={{ width: `${transaction.riskScore}%` }}
+                  />
+                </div>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full min-w-[620px] text-left text-sm">
           <thead className="bg-slate-50 text-xs uppercase text-slate-500">
             <tr>
@@ -36,7 +84,7 @@ export function PaymentTable({ transactions }: Props) {
             {transactions.map((transaction) => {
               const Icon = methodIcon[transaction.method];
               return (
-                <tr key={transaction.id}>
+                <tr key={transaction.id} className="transition-colors duration-200 hover:bg-slate-50">
                   <td className="px-4 py-3">
                     <p className="font-semibold text-ink">{transaction.id}</p>
                     <p className="text-xs text-slate-500">
@@ -53,9 +101,18 @@ export function PaymentTable({ transactions }: Props) {
                   </td>
                   <td className="px-4 py-3 font-semibold text-ink">{currency.format(transaction.amount)}</td>
                   <td className="px-4 py-3">
-                    <div className="h-2 w-24 rounded bg-slate-100">
+                    <div
+                      aria-label={`Risk score ${transaction.riskScore}`}
+                      aria-valuemax={100}
+                      aria-valuemin={0}
+                      aria-valuenow={transaction.riskScore}
+                      className="h-2 w-24 rounded bg-slate-100"
+                      role="progressbar"
+                    >
                       <div
-                        className={`h-2 rounded ${transaction.riskScore > 50 ? "bg-coral" : "bg-mint"}`}
+                        className={`h-2 rounded transition-[width] duration-300 ${
+                          transaction.riskScore > 50 ? "bg-coral" : "bg-mint"
+                        }`}
                         style={{ width: `${transaction.riskScore}%` }}
                       />
                     </div>

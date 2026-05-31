@@ -1,6 +1,16 @@
 import type { Checkout, PaymentMethod, Table } from "@usen-pay/domain";
 import { currency } from "@usen-pay/domain";
-import { Banknote, CreditCard, QrCode, ReceiptText, TrainFront, WalletCards } from "lucide-react";
+import {
+  BadgePercent,
+  Banknote,
+  CreditCard,
+  GitBranch,
+  QrCode,
+  ReceiptText,
+  ShieldAlert,
+  TrainFront,
+  WalletCards,
+} from "lucide-react";
 
 type Props = {
   checkouts: Checkout[];
@@ -36,25 +46,25 @@ export function CheckoutPanel({
 
   if (!activeCheckout) {
     return (
-      <section className="rounded-lg border border-line bg-white p-4 shadow-panel">
-        <h2 className="text-base font-semibold text-ink">Checkout</h2>
+      <section className="rounded-xl border border-line bg-white p-4 shadow-panel">
+        <h2 className="text-base font-semibold tracking-tight text-ink">Checkout</h2>
         <p className="mt-1 text-sm text-slate-600">No active checkout requests.</p>
       </section>
     );
   }
 
   return (
-    <section className="rounded-lg border border-line bg-white shadow-panel">
+    <section className="overflow-hidden rounded-xl border border-line bg-white shadow-panel">
       <div className="border-b border-line p-4">
         <div className="flex items-center gap-2">
           <ReceiptText size={19} className="text-payblue" aria-hidden="true" />
-          <h2 className="text-base font-semibold text-ink">Checkout</h2>
+          <h2 className="text-base font-semibold tracking-tight text-ink">Checkout</h2>
         </div>
         <p className="mt-1 text-sm text-slate-600">Table bill, discount, tax, and tender status</p>
       </div>
 
       <div className="p-4">
-        <div className="rounded-lg border border-line bg-slate-50 p-3">
+        <div className="rounded-xl border border-line bg-slate-50 p-3">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase text-slate-500">Selected</p>
@@ -63,7 +73,7 @@ export function CheckoutPanel({
                 {selectedTable?.customerNo ?? activeCheckout.customerNo}
               </p>
             </div>
-            <span className="rounded-md bg-white px-2 py-1 text-xs font-semibold text-slate-600">
+            <span className="rounded-lg bg-white px-2 py-1 text-xs font-semibold text-slate-600">
               {activeCheckout.status}
             </span>
           </div>
@@ -85,7 +95,7 @@ export function CheckoutPanel({
               <dd className="font-semibold text-ink">{currency.format(activeCheckout.total)}</dd>
             </div>
           </dl>
-          <div className="mt-4 flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm text-slate-700">
+          <div className="mt-4 flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-medium text-slate-700">
             {(() => {
               const Icon = methodIcon[activeCheckout.method];
               return <Icon size={17} aria-hidden="true" />;
@@ -96,7 +106,7 @@ export function CheckoutPanel({
 
         <div className="mt-4 grid grid-cols-2 gap-2">
           <button
-            className="inline-flex items-center justify-center gap-2 rounded-md bg-payblue px-3 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
+            className="col-span-2 inline-flex items-center justify-center gap-2 rounded-lg bg-payblue px-3 py-2.5 text-sm font-semibold text-white transition-colors duration-200 hover:bg-blue-700 focus:ring-4 focus:ring-payblue/20 disabled:cursor-not-allowed disabled:bg-slate-300"
             disabled={isLocked || isBusy}
             onClick={() => onSettle(activeCheckout.id)}
             type="button"
@@ -105,32 +115,38 @@ export function CheckoutPanel({
             {isBusy ? "Processing" : "Settle bill"}
           </button>
           <button
-            className="rounded-md border border-line bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition-colors duration-200 hover:border-cyan/50 hover:bg-cyan/5 focus:ring-4 focus:ring-payblue/20 disabled:cursor-not-allowed disabled:text-slate-400"
             disabled={isLocked || isBusy}
             onClick={() => onSplit(activeCheckout.id)}
             type="button"
           >
+            <GitBranch size={15} aria-hidden="true" />
             Split
           </button>
           <button
-            className="rounded-md border border-line bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition-colors duration-200 hover:border-cyan/50 hover:bg-cyan/5 focus:ring-4 focus:ring-payblue/20 disabled:cursor-not-allowed disabled:text-slate-400"
             disabled={isLocked || !canDiscount || isBusy}
             onClick={() => onDiscount(activeCheckout.id)}
             type="button"
           >
+            <BadgePercent size={15} aria-hidden="true" />
             Discount
           </button>
           <button
-            className="rounded-md border border-line bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400"
+            className="col-span-2 inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition-colors duration-200 hover:border-cyan/50 hover:bg-cyan/5 focus:ring-4 focus:ring-payblue/20 disabled:cursor-not-allowed disabled:text-slate-400"
             disabled={isLocked || isBusy}
             onClick={() => onIssueReceipt(activeCheckout.id)}
             type="button"
           >
+            <ReceiptText size={15} aria-hidden="true" />
             Receipt
           </button>
         </div>
         {isLocked ? (
-          <p className="mt-3 text-sm text-amber-700">Manager login is required for checkout actions.</p>
+          <p className="mt-3 inline-flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700">
+            <ShieldAlert size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+            Manager login is required for checkout actions.
+          </p>
         ) : null}
         {!isLocked && !canDiscount ? (
           <p className="mt-3 text-sm text-slate-500">

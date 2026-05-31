@@ -1,26 +1,27 @@
 # Web Source Layout
 
-This app follows a route-first shell with feature-owned business modules.
+This app is a React + Vite SPA with feature-owned business modules.
 
-- `app/`: Next App Router entries only. Keep route files, layouts, route handlers, and app-level providers here.
-- `app/_providers/`: Client providers mounted by the root layout.
+- `app/`: SPA shell, React Router routes, app providers, and app-level error boundary.
+- `app/_providers/`: Query provider and cross-cutting client providers.
 - `features/`: Business capabilities. Each feature owns its UI, model state, API hooks, and test fixtures.
 - `features/*/components/`: Feature-specific presentational and workflow components.
 - `features/*/model/`: Feature-owned state, TanStack Query hooks, selectors, and mutations.
 - `features/*/testing/`: Reusable fixtures and helpers for tests in that feature.
-- `shared/`: Cross-feature infrastructure such as BFF clients, common test utilities, and generic adapters.
+- `shared/`: Cross-feature infrastructure such as API clients, common test utilities, and generic adapters.
 
 Server/API data belongs in TanStack Query hooks under `model/`. Local UI selections, filters, and modal/session UI state belong in Zustand stores under `model/`. Route files should import feature public APIs from each feature barrel instead of reaching into component internals.
 
 ## Runtime Boundary
 
-The web app talks to backend services only from server-side route handlers or server components. Client components call relative Next APIs such as `/api/dashboard`, `/api/settings`, and `/api/checkout/:id/settle`.
+The web app talks to backend services through relative SPA calls such as `/api/dashboard`, `/api/settings`, and `/api/checkout/:id/settle`.
 
-Backend selection is controlled by `API_BASE_URL`:
+Backend selection is controlled by Vite proxy configuration:
 
-- `dev:mock` sets `API_BASE_URL=http://localhost:8790` and `NEXT_PUBLIC_API_MODE=mock`.
-- normal dev/production must set `API_BASE_URL` to the Spring Boot API.
-- missing `API_BASE_URL` is a configuration error.
+- default `dev` proxies `/api` to the BFF at `http://localhost:8787`.
+- `dev:mock` sets `VITE_API_MODE=mock` and proxies `/api` to `http://localhost:8790`.
+- `VITE_API_MODE=spring` proxies `/api` to Spring Boot at `http://localhost:8080`.
+- `VITE_API_PROXY_TARGET` can override the proxy target for e2e or staging-like local tests.
 
 Do not add mock fallback URLs inside source files. Mock mode must be explicit in scripts or environment variables.
 
@@ -49,12 +50,11 @@ Client component:
 ```txt
 useMutation/useQuery
   -> /api/*
-  -> route handler
-  -> shared/api backend fetch helper
-  -> API_BASE_URL backend
+  -> Vite dev proxy or production edge/backend proxy
+  -> BFF/mock/Spring backend
 ```
 
-This keeps credentials, backend hostnames, and future Spring Boot migration concerns out of browser code.
+This keeps backend hostnames configurable and prevents fetch calls from being scattered through UI components.
 
 ## MyPage Routing
 
@@ -75,4 +75,4 @@ When adding a new settings area, add a section name to `shared/config/routes.ts`
 - Use `shared/model/toast-store.ts` for global popup messages.
 - `shared/ui/toast-viewport.tsx` owns rendering and auto-dismiss.
 - Query/mutation failures should surface through the global query client or local error states.
-- Client rendering failures are caught by `app/_providers/error-boundary.tsx`.
+- Client rendering failures are caught by `app/error-boundary.tsx`.

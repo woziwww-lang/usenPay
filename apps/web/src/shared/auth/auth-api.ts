@@ -1,22 +1,12 @@
 import { useMutation } from "@tanstack/react-query";
+import { requestJson } from "@/shared/api/http";
 import { type ManagerSession, useAuthStore } from "./auth-store";
 
 export async function loginManager(managerId: string): Promise<ManagerSession> {
-  const response = await fetch("/api/auth/login", {
+  return requestJson<ManagerSession>("/api/auth/login", {
     method: "POST",
-    headers: {
-      accept: "application/json",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({ managerId }),
+    body: { managerId },
   });
-
-  const payload = await response.json();
-  if (!response.ok) {
-    throw new Error(payload.error ?? "Login failed");
-  }
-
-  return payload;
 }
 
 export function useLoginManagerMutation() {
